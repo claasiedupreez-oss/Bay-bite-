@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BayBite RB — Richards Bay Angler</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            navy: {
+              950: '#0b1320',
+              900: '#131f33',
+              800: '#1a2942',
+              700: '#243757'
+            },
+            ocean: '#0ea5e9',
+            kelp: '#10b981',
+            warn: '#f59e0b',
+            danger: '#ef4444'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Clean subtle scrollbars & smooth transitions */
+    * { -webkit-tap-highlight-color: transparent; }
+    body { background-color: #0b1320; color: #f1f5f9; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .gauge-ring { transition: stroke-dashoffset 0.65s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.35s ease; }
+  </style>
+</head>
+<body class="bg-[#0b1320] text-slate-100 font-sans antialiased min-h-screen flex flex-col lg:flex-row selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- ===================================================================== -->
+  <!-- DESKTOP LEFT SIDEBAR NAVIGATION                                       -->
+  <!-- ===================================================================== -->
+  <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-[#131f33] border-r border-slate-800/80 z-30">
+    <!-- Brand -->
+    <div class="p-5 border-b border-slate-800/80 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/>
+          <circle cx="16.5" cy="11.5" r="1.2" fill="currentColor" stroke="none"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2 12l-1-3m1 3l-1 3"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base font-extrabold tracking-tight text-white leading-tight">BayBite RB</h1>
+        <p class="text-xs text-sky-400 font-medium">Richards Bay Angler</p>
+      </div>
+    </div>
+
+    <!-- Desktop Nav Links -->
+    <nav id="desktop-nav" class="flex-1 p-3 space-y-1.5 overflow-y-auto">
+      <!-- Populated via JS for active-state sync -->
+    </nav>
+
+    <!-- Desktop Footer Status -->
+    <div class="p-4 border-t border-slate-800/80 space-y-3">
+      <div class="flex items-center justify-between text-xs bg-[#0b1320] rounded-xl px-3 py-2.5 border border-slate-800">
+        <span class="flex items-center gap-2 text-emerald-400 font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Offline Ready
+        </span>
+        <span class="text-slate-400">Cached 7d</span>
+      </div>
+      <button onclick="openLoggerModal()" class="w-full py-2.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.98] text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-sky-500/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Log Catch / Blank
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN APP SHELL (HEADER + CONTENT)                                     -->
+  <!-- ===================================================================== -->
+  <div class="flex-1 flex flex-col lg:pl-64 min-h-screen pb-20 lg:pb-8">
+
+    <!-- STICKY TOP HEADER -->
+    <header class="sticky top-0 z-20 bg-[#0b1320]/95 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-6 py-3">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
+        <!-- Mobile Brand + Zone Selector -->
+        <div class="flex items-center gap-2.5 flex-1 min-w-[200px]">
+          <div class="lg:hidden w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-emerald-500 flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/>
+              <circle cx="16.5" cy="11.5" r="1.2" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <div class="flex-1 max-w-xs">
+            <label for="global-zone-select" class="sr-only">Select Richards Bay Zone</label>
+            <div class="relative">
+              <select id="global-zone-select" onchange="handleZoneChange(this.value)" class="w-full appearance-none bg-[#131f33] hover:bg-[#1a2942] border border-slate-700/80 text-white text-sm font-semibold rounded-xl pl-3 pr-9 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer transition">
+                <option value="south-pier">South Pier &amp; Harbour</option>
+                <option value="alkantstrand">Alkantstrand &amp; Surf</option>
+                <option value="the-pipe">The Pipe (Effluent)</option>
+                <option value="mzingazi">Mzingazi &amp; Estuary</option>
+                <option value="mapelane">Mapelane</option>
+                <option value="offshore">Offshore / Ski-Boat</option>
+              </select>
+              <svg class="w-4 h-4 text-sky-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header Right Controls -->
+        <div class="flex items-center gap-2">
+          <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1.5" title="Tides, limits & first-aid cached locally">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Offline Ready
+          </span>
+          <button onclick="openLoggerModal()" class="inline-flex items-center gap-1.5 bg-sky-500 hover:bg-sky-400 active:scale-95 text-slate-950 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl transition shadow-md shadow-sky-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <span>Log Catch</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main id="app-content" class="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+      <!-- Dynamic tab content rendered here -->
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MOBILE BOTTOM NAVIGATION BAR                                          -->
+  <!-- ===================================================================== -->
+  <nav id="mobile-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[#131f33]/95 backdrop-blur-md border-t border-slate-800 px-1 py-1.5 grid grid-cols-5 gap-1">
+    <!-- Populated via JS for active-state sync -->
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: QUICK CATCH / BLANK TRIP LOGGER                                -->
+  <!-- ===================================================================== -->
+  <div id="logger-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-[#131f33] border border-slate-700/80 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-auto">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+        <div>
+          <h2 class="text-lg font-bold text-white">Log Fishing Session</h2>
+          <p class="text-xs text-slate-400">Blank trips improve local bite accuracy too.</p>
+        </div>
+        <button onclick="closeModal('logger-modal')" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="logger-form" onsubmit="handleLogSubmit(event)" class="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <!-- Trip Type Toggle -->
+        <div class="grid grid-cols-2 gap-2 bg-[#0b1320] p-1 rounded-xl border border-slate-800">
+          <button type="button" id="log-type-catch" onclick="setLogType('catch')" class="py-2 rounded-lg text-sm font-bold transition bg-emerald-500 text-slate-950">Catch Logged</button>
+          <button type="button" id="log-type-blank" onclick="setLogType('blank')" class="py-2 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white">Blank Trip (No Bite)</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Richards Bay Zone</label>
+            <select id="log-zone" class="w-full bg-[#0b1320] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+              <option value="south-pier">South Pier &amp; Harbour</option>
+              <option value="alkantstrand">Alkantstrand &amp; Surf</option>
+              <option value="the-pipe">The Pipe (Effluent)</option>
+              <option value="mzingazi">Mzingazi &amp; Estuary</option>
+              <option value="mapelane">Mapelane</option>
+              <option value="offshore">Offshore / Ski-Boat</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Session Duration (Hours)</label>
+            <input type="number" id="log-hours" step="0.5" min="0.5" max="24" value="3" required class="w-full bg-[#0b1320] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500" />
+          </div>
+        </div>
+
+        <!-- Catch-Only Fields -->
+        <div id="catch-only-fields" class="space-y-3.5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Species</label>
+              <select id="log-species" onchange="checkLogSpeciesCompliance()" class="w-full bg-[#0b1320] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <option value="Dusky Kob">Dusky Kob / Kabeljou</option>
+                <option value="Spotted Grunter">Spotted Grunter</option>
+                <option value="Garrick / Leervis">Garrick / Leervis</option>
+                <option value="Shad / Elf">Shad / Elf</option>
+                <option value="Kingfish / GT">Kingfish / GT</option>
+                <option value="Natal Stumpnose">Natal Stumpnose</option>
+                <option value="Blacktail / Dassie">Blacktail / Dassie</option>
+                <option value="King Mackerel / Couta">King Mackerel / Couta</option>
+                <option value="Yellowfin Tuna">Yellowfin Tuna</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Size (cm)</label>
+              <input type="number" id="log-size" oninput="checkLogSpeciesCompliance()" min="5" max="300" placeholder="e.g. 64" value="64" class="w-full bg-[#0b1320] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+          </div>
+
+          <!-- Dynamic Compliance Hint -->
+          <div id="log-compliance-hint" class="hidden rounded-xl p-3 text-xs font-medium border"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Bait / Lure Used</label>
+            <input type="text" id="log-bait" required placeholder="e.g. Fresh Sardine & Chokka" value="Fresh Sardine & Chokka" class="w-full bg-[#0b1320] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Privacy Tier</label>
+            <select id="log-privacy" class="w-full bg-[#0b1320] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+              <option value="Zone-Only">Zone-Only (Protects exact spot)</option>
+              <option value="Private GPS">Private GPS (Only visible to you)</option>
+              <option value="Public Chat">Public Chat</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="flex items-start gap-2.5 bg-[#0b1320] p-3 rounded-xl border border-slate-800 cursor-pointer">
+          <input type="checkbox" id="log-share-chat" checked class="mt-0.5 w-4 h-4 rounded accent-sky-500" />
+          <span class="text-xs text-slate-300 leading-relaxed">
+            <strong class="text-white block">Auto-share Zone-Only summary to #live-catch-feed</strong>
+            EXIF GPS is automatically stripped. Exact coordinates are never posted.
+          </span>
+        </label>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('logger-modal')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-sm font-bold transition shadow-lg shadow-sky-500/20">Save Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: WHATSAPP MISSION CARD                                          -->
+  <!-- ===================================================================== -->
+  <div id="whatsapp-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4">
+    <div class="bg-[#131f33] border border-slate-700/80 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+          </span>
+          <div>
+            <h2 class="text-base font-bold text-white">WhatsApp Mission Card</h2>
+            <p class="text-xs text-slate-400">Ready to drop into your fishing group</p>
+          </div>
+        </div>
+        <button onclick="closeModal('whatsapp-modal')" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <pre id="whatsapp-preview" class="bg-[#0b1320] border border-slate-800 rounded-xl p-4 text-xs sm:text-sm text-slate-200 whitespace-pre-wrap font-mono leading-relaxed max-h-72 overflow-y-auto"></pre>
+        <div class="flex items-center justify-end gap-2.5">
+          <button onclick="closeModal('whatsapp-modal')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition">Close</button>
+          <button onclick="copyMissionCard()" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold flex items-center gap-2 transition shadow-lg shadow-emerald-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            Copy for WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: OFFLINE FIRST-AID GUIDE                                        -->
+  <!-- ===================================================================== -->
+  <div id="firstaid-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-[#131f33] border border-red-500/40 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-auto">
+      <div class="flex items-center justify-between px-5 py-4 bg-red-500/10 border-b border-red-500/30">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+          </span>
+          <div>
+            <h2 id="firstaid-title" class="text-base font-bold text-white">Offline Marine First-Aid</h2>
+            <p class="text-xs text-red-300">Works without cell signal • Advisory guide</p>
+          </div>
+        </div>
+        <button onclick="closeModal('firstaid-modal')" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="firstaid-body" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto text-sm text-slate-200">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="px-5 py-3.5 bg-[#0b1320] border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <div class="text-xs">
+          <span class="text-slate-400">NSRI Richards Bay (Stn 19):</span>
+          <strong class="text-red-400 ml-1">082 990 5949</strong>
+          <span class="text-slate-500 mx-1">•</span>
+          <strong class="text-white">112</strong>
+        </div>
+        <button onclick="closeModal('firstaid-modal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TOAST NOTIFICATION CONTAINER                                          -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[60] space-y-2 pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC (VANILLA JS + LOCALSTORAGE)                         -->
+  <!-- ===================================================================== -->
+  <script>
+    /* =====================================================================
+     * 1. STATIC RICHARDS BAY REFERENCE DATA
+     * ===================================================================== */
+    const STORAGE_KEY = 'baybite_rb_state_v1';
+
+    const ZONES = {
+      'south-pier': {
+        id: 'south-pier',
+        name: 'South Pier & Harbour',
+        short: 'South Pier',
+        type: 'Pier & Channel',
+        baseScore: 76,
+        topSpecies: ['Garrick / Leervis', 'Dusky Kob', 'Kingfish / GT'],
+        waterNote: 'Deep channel drop-off; strong tidal flow near mouth.'
+      },
+      'alkantstrand': {
+        id: 'alkantstrand',
+        name: 'Alkantstrand & Surf',
+        short: 'Alkantstrand',
+        type: 'Surf Beach',
+        baseScore: 71,
+        topSpecies: ['Dusky Kob', 'Shad / Elf', 'Natal Stumpnose'],
+        waterNote: 'Working surf gullies; best on pushing tide at dawn/dusk.'
+      },
+      'the-pipe': {
+        id: 'the-pipe',
+        name: 'The Pipe (Effluent)',
+        short: 'The Pipe',
+        type: 'Surf & Structure',
+        baseScore: 74,
+        topSpecies: ['Dusky Kob', 'Garrick / Leervis', 'Blacktail / Dassie'],
+        waterNote: 'Baitfish magnet; discolored plume draws night predators.'
+      },
+      'mzingazi': {
+        id: 'mzingazi',
+        name: 'Mzingazi & Estuary',
+        short: 'Mzingazi',
+        type: 'Estuary & Flats',
+        baseScore: 78,
+        topSpecies: ['Spotted Grunter', 'Kingfish / GT', 'Dusky Kob'],
+        waterNote: 'Pushing spring tides flood prawn banks and trigger Grunter.'
+      },
+      'mapelane': {
+        id: 'mapelane',
+        name: 'Mapelane',
+        short: 'Mapelane',
+        type: 'Remote Surf & Point',
+        baseScore: 73,
+        topSpecies: ['Dusky Kob', 'Kingfish / GT', 'Natal Stumpnose'],
+        waterNote: 'Clean rocky point & surf banks; check iSimangaliso MPA borders.'
+      },
+      'offshore': {
+        id: 'offshore',
+        name: 'Offshore / Ski-Boat',
+        short: 'Offshore',
+        type: 'Deep Sea',
+        baseScore: 79,
+        topSpecies: ['King Mackerel / Couta', 'Yellowfin Tuna', 'Kingfish / GT'],
+        waterNote: 'Warm Agulhas edge brings gamefish; check swell & harbour bar.'
+      }
+    };
+
+    // SA Recreational Compliance Database for Richards Bay
+    const SPECIES_DB = [
+      {
+        id: 'shad',
+        name: 'Shad / Elf',
+        minSize: '30 cm',
+        minCm: 30,
+        bagLimit: 4,
+        category: 'Shore / Surf',
+        closedSeason: true,
+        closedLabel: 'CLOSED SEASON: 1 Oct – 30 Nov',
+        notes: 'Strictly Catch & Release during Oct–Nov. Razor-sharp teeth; use steel trace and pliers.'
+      },
+      {
+        id: 'kob',
+        name: 'Dusky Kob / Kabeljou',
+        minSize: '60 cm (shore/estuary)',
+        minCm: 60,
+        bagLimit: 1,
+        category: 'Shore / Surf',
+        closedSeason: false,
+        notes: 'Shore & estuary limit is 1/day (min 60 cm). Note: KZN offshore ski-boat min size is 40 cm.'
+      },
+      {
+        id: 'grunter',
+        name: 'Spotted Grunter',
+        minSize: '40 cm',
+        minCm: 40,
+        bagLimit: 5,
+        category: 'Estuary',
+        closedSeason: false,
+        notes: 'Prime target on Richards Bay estuary & harbour mud/sand flats on pushing tides.'
+      },
+      {
+        id: 'garrick',
+        name: 'Garrick / Leervis',
+        minSize: '70 cm',
+        minCm: 70,
+        bagLimit: 2,
+        category: 'Shore / Surf',
+        closedSeason: false,
+        notes: 'Strict 70 cm minimum—juveniles are frequently caught undersize. Handle gently for release.'
+      },
+      {
+        id: 'stumpnose',
+        name: 'Natal Stumpnose',
+        minSize: '25 cm',
+        minCm: 25,
+        bagLimit: 5,
+        category: 'Shore / Surf',
+        closedSeason: false,
+        notes: 'Common in foamy rocky gullies and estuary mouths on prawns, crab, and chokka.'
+      },
+      {
+        id: 'kingfish',
+        name: 'Kingfish / GT',
+        minSize: 'No min size',
+        minCm: 0,
+        bagLimit: 5,
+        category: 'Shore / Surf',
+        closedSeason: false,
+        notes: 'Catch & Release strongly recommended for large breeding Giant Trevally.'
+      },
+      {
+        id: 'couta',
+        name: 'King Mackerel / Couta',
+        minSize: 'No min size',
+        minCm: 0,
+        bagLimit: 10,
+        category: 'Offshore',
+        closedSeason: false,
+        notes: 'Premier KZN ski-boat gamefish. Use wire trace; extreme caution with sharp teeth.'
+      },
+      {
+        id: 'tuna',
+        name: 'Yellowfin Tuna',
+        minSize: '3.2 kg',
+        minCm: 0,
+        bagLimit: 10,
+        category: 'Offshore',
+        closedSeason: false,
+        notes: 'Offshore target beyond the harbour shipping lanes. Bleed immediately if keeping.'
+      },
+      {
+        id: 'blacktail',
+        name: 'Blacktail / Dassie',
+        minSize: '20 cm',
+        minCm: 20,
+        bagLimit: 5,
+        category: 'Shore / Surf',
+        closedSeason: false,
+        notes: 'Abundant around rocky outcrops, dolosse, and foamy surf gullies.'
+      }
+    ];
+
+    // Toxic & Hazardous Marine Species Database
+    const HAZARDS_DB = [
+      {
+        id: 'blaasop',
+        name: 'Blaasop / Pufferfish (Toby)',
+        severity: 'red',
+        badge: 'LETHAL TOXIN — NEVER EAT',
+        summary: 'Very common nuisance catch in RB estuaries and surf. Skin, liver, and organs contain lethal tetrodotoxin.',
+        firstAidType: 'toxin-ingestion'
+      },
+      {
+        id: 'barbel',
+        name: 'Sea Barbel (Catfish)',
+        severity: 'red',
+        badge: 'VENOMOUS SPINES',
+        summary: 'Extremely common in Richards Bay Harbour and estuary. Serrated dorsal & pectoral spines carry toxic mucus causing severe throbbing pain and infection.',
+        firstAidType: 'venom-sting'
+      },
+      {
+        id: 'stonefish',
+        name: 'Stonefish & Scorpionfish',
+        severity: 'red',
+        badge: 'MEDICAL EMERGENCY',
+        summary: 'Masterfully camouflaged on rocky ledges and reefs. Stepping on or grabbing dorsal spines delivers potent venom.',
+        firstAidType: 'severe-venom'
+      },
+      {
+        id: 'lionfish',
+        name: 'Lionfish / Devil Firefish',
+        severity: 'red',
+        badge: 'VENOMOUS FIN RAYS',
+        summary: 'Occasionally hooked near harbour walls, dolosse, and reefs. Long ornate fin rays deliver painful venomous stings.',
+        firstAidType: 'venom-sting'
+      },
+      {
+        id: 'stingray',
+        name: 'Stingrays & Honeycomb Rays',
+        severity: 'red',
+        badge: 'VENOMOUS TAIL BARB',
+        summary: 'Common in surf gullies and estuary sandbanks. Whip-like tail holds a serrated venomous barb—shuffle feet when wading.',
+        firstAidType: 'venom-sting'
+      },
+      {
+        id: 'ciguatera',
+        name: 'Large Reef Predators (Barracuda / Big Snappers)',
+        severity: 'amber',
+        badge: 'CIGUATERA TOXIN RISK',
+        summary: 'Very large, older tropical reef fish can accumulate ciguatera toxin. Cooking does NOT destroy the toxin—release trophy reef fish.',
+        firstAidType: 'ciguatera'
+      },
+      {
+        id: 'teeth',
+        name: 'Shad, Couta & Sharks',
+        severity: 'amber',
+        badge: 'HANDLING HAZARD — TEETH',
+        summary: 'Razor-sharp dentition causes deep lacerations during unhooking. Always use lip-grips, T-bar dehookers, or long-nose pliers.',
+        firstAidType: 'laceration'
+      }
+    ];
+
+    const ZONE_HAZARDS_DB = [
+      {
+        zone: 'Mzingazi, Nhlabane & Estuary Sanctuary',
+        severity: 'red',
+        tag: 'WILDLIFE HAZARD',
+        desc: 'Active Hippo and Nile Crocodile populations. Extreme caution required at dawn, dusk, and night. Never wade in deep murky estuary channels or stand on hippo paths.'
+      },
+      {
+        zone: 'South Pier, North Pier & Rocky Ledges',
+        severity: 'amber',
+        tag: 'WAVE & STRUCTURE',
+        desc: 'Algae-covered dolosse are treacherous. Heavy shorebreak and sudden rogue swells (>2.0m) frequently wash over the pier during spring high tides.'
+      },
+      {
+        zone: 'Harbour Shipping Channel',
+        severity: 'amber',
+        tag: 'VESSEL TRAFFIC',
+        desc: 'Heavy bulk-carrier shipping traffic and powerful tug wakes. Stay strictly clear of Transnet National Ports Authority restricted security zones.'
+      },
+      {
+        zone: 'Nearby Marine Protected Areas (MPAs)',
+        severity: 'sky',
+        tag: 'NO-TAKE BOUNDARIES',
+        desc: 'Verify GPS boundaries near iSimangaliso Wetland Park (North) and uThukela MPA (South). Fishing inside sanctuary zones carries heavy fines and gear confiscation.'
+      }
+    ];
+
+    const CHAT_CHANNELS = [
+      { id: 'live-catch-feed', label: '#live-catch-feed' },
+      { id: 'conditions-water', label: '#conditions-water' },
+      { id: 'piers-harbour', label: '#piers-harbour' },
+      { id: 'surf-beaches', label: '#surf-beaches' },
+      { id: 'estuary', label: '#estuary' },
+      { id: 'offshore-skiboat', label: '#offshore-skiboat' },
+      { id: 'bait-tackle-swap', label: '#bait-tackle-swap' }
+    ];
+
+    /* =====================================================================
+     * 2. DEFAULT PERSISTED STATE & LOCALSTORAGE HELPERS
+     * ===================================================================== */
+    const DEFAULT_STATE = {
+      activeTab: 'dashboard',
+      zone: 'south-pier',
+      simOpen: false,
+      conditions: {
+        clarity: 'slightly-colored', // clean | slightly-colored | murky
+        timeOfDay: 'dusk',           // dawn | midday | dusk | night
+        tide: 'pushing',             // pushing | dropping
+        swellWind: 'working'         // calm | working | rough
+      },
+      baitSpeciesFilter: 'All',
+      limitsSearch: '',
+      limitsFilter: 'All',
+      bagCounts: {
+        grunter: 1,
+        stumpnose: 2
+      },
+      activeChannel: 'live-catch-feed',
+      likedPosts: [],
+      logs: [
+        {
+          id: 'log-1',
+          type: 'catch',
+          zone: 'south-pier',
+          species: 'Dusky Kob',
+          sizeCm: 68,
+          bait: 'Fresh Sardine & Chokka',
+          hours: 2.5,
+          privacy: 'Zone-Only',
+          timestamp: 'Yesterday, 18:10',
+          conditionsSnap: 'Pushing Tide • Working 1.5m'
+        },
+        {
+          id: 'log-2',
+          type: 'blank',
+          zone: 'alkantstrand',
+          species: 'Blank Trip',
+          sizeCm: null,
+          bait: '2oz Silver Spoon',
+          hours: 2.0,
+          privacy: 'Private GPS',
+          timestamp: '2 days ago, 12:30',
+          conditionsSnap: 'Dropping Tide • Bright Midday'
+        },
+        {
+          id: 'log-3',
+          type: 'catch',
+          zone: 'mzingazi',
+          species: 'Spotted Grunter',
+          sizeCm: 47,
+          bait: 'Mud Prawn',
+          hours: 3.0,
+          privacy: 'Zone-Only',
+          timestamp: '4 days ago, 06:45',
+          conditionsSnap: 'Pushing Spring Tide • Dawn'
+        }
+      ],
+      chatPosts: [
+        {
+          id: 'p-1',
+          channel: 'live-catch-feed',
+          author: 'Jaco van der Merwe',
+          badge: null,
+          zone: 'South Pier & Harbour',
+          species: 'Dusky Kob',
+          bait: 'Fresh Sardine & Chokka',
+          tide: 'Pushing Tide',
+          catchRelease: false,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Solid 68cm Kob came out on the push just as the light dropped. Dirty water edge holding fish right now.',
+          time: '35m ago',
+          likes: 14
+        },
+        {
+          id: 'p-2',
+          channel: 'bait-tackle-swap',
+          author: 'Richards Bay Tackle',
+          badge: 'Verified Tackle Shop',
+          zone: 'Richards Bay',
+          species: null,
+          bait: 'Red-Eye Sardines',
+          tide: null,
+          catchRelease: false,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Fresh box of Red-Eye Sardines, whole squid/chokka, and 60g chrome spoons just unpacked. Open till 17:30!',
+          time: '1h ago',
+          likes: 23
+        },
+        {
+          id: 'p-3',
+          channel: 'conditions-water',
+          author: 'Sipho Ndlovu',
+          badge: 'Local Regular',
+          zone: 'Alkantstrand & Surf',
+          species: null,
+          bait: null,
+          tide: 'Pushing Tide',
+          catchRelease: false,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Water has a nice ginger-beer colour in the gullies at Alkantstrand. Swell ~1.5m and wind light NE. Looks prime for dusk.',
+          time: '2h ago',
+          likes: 19
+        },
+        {
+          id: 'p-4',
+          channel: 'estuary',
+          author: 'Devon Govender',
+          badge: null,
+          zone: 'Mzingazi & Estuary',
+          species: 'Spotted Grunter',
+          bait: 'Sand Prawn',
+          tide: 'Pushing Tide',
+          catchRelease: true,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Two healthy Grunter on the flats before 8am. Heads up: hippo pod was vocal near the upper reed bank at first light—stay alert!',
+          time: '3h ago',
+          likes: 27
+        },
+        {
+          id: 'p-5',
+          channel: 'offshore-skiboat',
+          author: 'Capt. Brendon K.',
+          badge: 'Ski-Boat Skipper',
+          zone: 'Offshore / Ski-Boat',
+          species: 'King Mackerel / Couta',
+          bait: 'Live Mackerel',
+          tide: 'Dropping Tide',
+          catchRelease: false,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Clean 24°C blue water out on the 40m line. Landed two nice Couta on slow-trolled live mackerel. Harbour bar was manageable.',
+          time: '4h ago',
+          likes: 31
+        },
+        {
+          id: 'p-6',
+          channel: 'piers-harbour',
+          author: 'Kyle Botha',
+          badge: null,
+          zone: 'South Pier & Harbour',
+          species: 'Shad / Elf',
+          bait: '2oz Silver Spoon',
+          tide: 'Pushing Tide',
+          catchRelease: true,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Thick shoal of Shad came through while spinning for Garrick. Swapped to single barbless hooks and released 4 safely (Closed Season!).',
+          time: '5h ago',
+          likes: 18
+        },
+        {
+          id: 'p-7',
+          channel: 'surf-beaches',
+          author: 'Thabo M.',
+          badge: null,
+          zone: 'The Pipe (Effluent)',
+          species: 'Garrick / Leervis',
+          bait: 'Live Karanteen',
+          tide: 'Dropping Tide',
+          catchRelease: true,
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: 'Juvenile Garrick (~62cm) safely released. Baitfish schools are active along the backline.',
+          time: '6h ago',
+          likes: 11
+        }
+      ]
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(DEFAULT_STATE);
+        const parsed = JSON.parse(raw);
+        return {
+          ...structuredClone(DEFAULT_STATE),
+          ...parsed,
+          conditions: { ...DEFAULT_STATE.conditions, ...(parsed.conditions || {}) },
+          bagCounts: { ...DEFAULT_STATE.bagCounts, ...(parsed.bagCounts || {}) }
+        };
+      } catch (e) {
+        console.warn('Could not load saved state, using defaults:', e);
+        return structuredClone(DEFAULT_STATE);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('localStorage save failed:', e);
+      }
+    }
+
+    /* =====================================================================
+     * 3. CORE BITE SCORE & CONDITION ENGINE
+     * ===================================================================== */
+    function isShadClosedSeason() {
+      // SA Shad Closed Season: 1 October – 30 November (months 9 and 10 in 0-indexed JS)
+      // Current context is Nov 21, 2026 -> returns true
+      const now = new Date();
+      const month = now.getMonth();
+      return month === 9 || month === 10 || true; // Always highlight active Oct-Nov season in prototype
+    }
+
+    function computeBiteMetrics() {
+      const zoneObj = ZONES[state.zone];
+      const { clarity, timeOfDay, tide, swellWind } = state.conditions;
+      let score = zoneObj.baseScore;
+
+      // Time of day impact (dawn/dusk prime)
+      if (timeOfDay === 'dawn' || timeOfDay === 'dusk') score += 12;
+      else if (timeOfDay === 'night') score += (state.zone === 'offshore' ? -15 : 6);
+      else if (timeOfDay === 'midday') score -= 14;
+
+      // Tide impact
+      if (tide === 'pushing') score += 7;
+      else score -= 3;
+
+      // Water clarity impact per zone
+      if (clarity === 'slightly-colored') score += 8;
+      else if (clarity === 'murky') {
+        score += (state.zone === 'the-pipe' || state.zone === 'alkantstrand') ? 4 : -8;
+      } else if (clarity === 'clean') {
+        score += (state.zone === 'offshore' || state.zone === 'mzingazi') ? 6 : -4;
+      }
+
+      // Swell & wind impact
+      if (swellWind === 'working') score += 6;
+      else if (swellWind === 'calm') score += (state.zone === 'offshore' || state.zone === 'mzingazi') ? 7 : -5;
+      else if (swellWind === 'rough') score -= (state.zone === 'offshore' ? 28 : 16);
+
+      score = Math.max(15, Math.min(98, Math.round(score)));
+
+      let rating = 'SLOW';
+      let color = '#ef4444';
+      let badgeClass = 'bg-red-500/15 text-red-400 border-red-500/30';
+      if (score >= 80) {
+        rating = 'FIRING';
+        color = '#10b981';
+        badgeClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+      } else if (score >= 62) {
+        rating = 'GOOD';
+        color = '#0ea5e9';
+        badgeClass = 'bg-sky-500/15 text-sky-400 border-sky-500/30';
+      } else if (score >= 45) {
+        rating = 'FAIR';
+        color = '#f59e0b';
+        badgeClass = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+      }
+
+      // Derived live marine readouts
+      const pressureMap = {
+        calm: { hpa: '1018 hPa', trend: 'Steady (+0.4 hPa / 6h)', good: false },
+        working: { hpa: '1011 hPa', trend: 'Falling (-2.8 hPa / 6h)', good: true },
+        rough: { hpa: '1004 hPa', trend: 'Rapid Drop (-5.1 hPa / 6h)', good: false }
+      };
+      const swellMap = {
+        calm: { height: '0.8 m', period: '9s E', label: 'Calm' },
+        working: { height: '1.5 m', period: '11s SE', label: 'Working Gullies' },
+        rough: { height: '2.4 m', period: '13s SSW', label: 'Heavy / Dangerous' }
+      };
+      const windMap = {
+        calm: { speed: '9 km/h', dir: 'NE Light' },
+        working: { speed: '17 km/h', dir: 'NE Onshore' },
+        rough: { speed: '34 km/h', dir: 'SW Gusty' }
+      };
+
+      return {
+        score,
+        rating,
+        color,
+        badgeClass,
+        pressure: pressureMap[swellWind],
+        swell: swellMap[swellWind],
+        wind: windMap[swellWind],
+        solunar: timeOfDay === 'dawn' || timeOfDay === 'dusk' ? 'ACTIVE MAJOR WINDOW' : 'Major: 17:15 – 19:15'
+      };
+    }
+
+    function getZoneSafetyBanner() {
+      const { swellWind, timeOfDay } = state.conditions;
+      if (state.zone === 'mzingazi') {
+        const elevated = (timeOfDay === 'dawn' || timeOfDay === 'dusk' || timeOfDay === 'night');
+        return {
+          level: 'red',
+          title: elevated ? 'HIGH RISK: Hippos & Crocodiles Active Now' : 'Wildlife Caution: Hippos & Crocodiles',
+          text: 'Mzingazi & Estuary Sanctuary host active hippos and crocs. Avoid wading and stay off bank trails in low light.'
+        };
+      }
+      if (state.zone === 'south-pier') {
+        if (swellWind === 'rough') {
+          return {
+            level: 'red',
+            title: 'DANGER: Rogue Swells (>2.2m) & Slippery Dolosse',
+            text: 'Heavy waves washing over South Pier. High slip hazard and strong harbour mouth currents—avoid exposed rocks.'
+          };
+        }
+        return {
+          level: 'amber',
+          title: 'Harbour Channel & Dolosse Caution',
+          text: 'Watch for commercial bulk-carrier wakes, slippery algae on dolosse, and Transnet restricted port zones.'
+        };
+      }
+      if (state.zone === 'offshore') {
+        if (swellWind === 'rough') {
+          return {
+            level: 'red',
+            title: 'SMALL CRAFT WARNING: Rough 2.4m Swell & 34 km/h SW',
+            text: 'Hazardous harbour mouth & offshore conditions. Delay launch and check NSRI Station 19 updates.'
+          };
+        }
+        return {
+          level: 'amber',
+          title: 'Shipping Lane & MPA Boundary Check',
+          text: 'Keep clear of Richards Bay commercial shipping channel and verify iSimangaliso / uThukela MPA no-take zones.'
+        };
+      }
+      if (swellWind === 'rough') {
+        return {
+          level: 'red',
+          title: 'Heavy Shorebreak & Strong Rip Currents',
+          text: `Rough 2.4m+ swell at ${ZONES[state.zone].short}. Fish from high ground and never turn your back on the surf.`
+        };
+      }
+      return null;
+    }
+
+    /* =====================================================================
+     * 4. BAIT & LURE RECOMMENDATION ENGINE
+     * ===================================================================== */
+    function getBaitRecommendation() {
+      const { clarity, timeOfDay, tide, swellWind } = state.conditions;
+      const sp = state.baitSpeciesFilter;
+
+      // Species-specific overrides first
+      if (sp === 'Dusky Kob') {
+        return {
+          naturalBait: clarity === 'murky'
+            ? 'Whole Fresh Sardine & Chokka Combo (wrapped in bait cotton)'
+            : 'Live Mullet / Karanteen or Fresh Sardine Fillet',
+          lures: clarity === 'murky' || timeOfDay === 'night'
+            ? '5"–6" Dark/Purple or Chartreuse Paddletail • 1oz Bucktail Jig'
+            : 'Pearl White Paddletail • Slow-sinking Minnow',
+          rigging: 'Slow bottom-bouncing retrieve near sandbank drop-offs; 6/0–8/0 circle hook on 0.60mm fluorocarbon trace.',
+          why: 'Dusky Kob hunt heavily by lateral-line vibration and scent during low light, dirty water, and pushing tides.'
+        };
+      }
+      if (sp === 'Garrick / Leervis') {
+        return {
+          naturalBait: 'Live Shad (in season), Live Mullet, or Live Karanteen on a slide trace',
+          lures: timeOfDay === 'midday' && clarity === 'clean'
+            ? 'Silver/Chrome 2oz–3oz Spinning Spoon • Translucent Stickbait'
+            : 'Topwater Chisel-Nose Plug (White/Red Head) • Walk-the-Dog Popper',
+          rigging: 'Fast, erratic surface retrieve along pier channels and backline drop-offs.',
+          why: 'Garrick are visual ambush predators that thrive in clean to slightly coloured water around structure.'
+        };
+      }
+      if (sp === 'Spotted Grunter') {
+        return {
+          naturalBait: 'Fresh Mud Prawn or Sand Prawn (lightly bound with thin cotton)',
+          lures: 'Small Prawn-Imitation Surface Walkers (55–70mm) • Light 3" Shrimp Soft Plastics',
+          rigging: 'Light fluorocarbon leader (12–15lb), running ball sinker, #1–2/0 circle hook drifted across estuary flats.',
+          why: 'Grunter tail over Richards Bay estuary mudbanks on pushing spring tides hunting burrowing prawns.'
+        };
+      }
+      if (sp === 'Shad / Elf') {
+        return {
+          naturalBait: 'Drift Sardine Fillet on light steel trace (Catch & Release in Oct–Nov)',
+          lures: '30g–50g Chrome/Silver Spoons • Small Surface Poppers (Swap trebles to single barbless)',
+          rigging: 'Medium-fast retrieve through working surf gullies at dawn/dusk. Use long-nose pliers for safe release.',
+          why: 'Shad feed aggressively in oxygenated foam lines during low-light windows.'
+        };
+      }
+      if (sp === 'Kingfish / GT') {
+        return {
+          naturalBait: 'Live Karanteen, Strepie, or Fresh Bonito Belly Strip',
+          lures: swellWind === 'rough'
+            ? '60g–80g Heavy Casting Spoon • Sinking Stickbait'
+            : 'Chugger Topwater Popper (Pearl/Blue) • White Bucktail Jig',
+          rigging: 'Heavy abrasion-resistant leader (40–60lb) around South Pier dolosse and estuary mouth.',
+          why: 'Kingfish patrol current lines and ambush baitfish pushed against piers and rocky points.'
+        };
+      }
+      if (sp === 'Natal Stumpnose' || sp === 'Blacktail / Dassie') {
+        return {
+          naturalBait: 'Sand Prawns, Redbait, Small Crabs, or Thin Chokka Strips',
+          lures: 'Ultra-light Dropshot (2" Camo Worm or Small Crab Plastic on 1/8oz jighead)',
+          rigging: 'Short 1/0–2/0 hook trace fished tight into foamy rocky gullies and whitewater.',
+          why: 'Both species forage on crustaceans dislodged by washing surf around rocks and piers.'
+        };
+      }
+      if (sp === 'Couta') {
+        return {
+          naturalBait: 'Slow-trolled Live Mackerel, Mozambican Sardine, or Wallawalla on #5–#7 Piano Wire',
+          lures: 'Deep-diving Rapala X-Rap (Pilchard/Purple) • Weighted Pink/White Dusters',
+          rigging: 'Light drag setting (2–3kg strike) to prevent hook pulls on initial blazing run.',
+          why: 'Couta patrol warm offshore current edges (22–25°C) hunting schooling baitfish.'
+        };
+      }
+
+      // General Condition-to-Tackle Matrix ("All" species)
+      if (swellWind === 'rough') {
+        return {
+          naturalBait: 'Salted Sardine or Tough Chokka Strips bound tightly with elastic cotton',
+          lures: '40g–80g Heavy Metal Spoons • Aerodynamic Weighted Minnows',
+          rigging: 'Heavy grapnel sinker (5–6oz) to hold bottom in strong side-wash and cut through cross-shore wind.',
+          why: 'Soft baits and light plastics tangle or rip off the hook in 2.2m+ surf and gusty wind.'
+        };
+      }
+      if (clarity === 'murky' || timeOfDay === 'night') {
+        return {
+          naturalBait: 'Oily & Scent-Heavy: Fresh Sardine wrapped with Chokka strip (combo bait)',
+          lures: 'High-Vibration Dark/Black, Purple, or Chartreuse Paddletails • Slow-bounced Bucktail Jigs',
+          rigging: 'Slow down your retrieve and fish closer to the bottom; predators rely on scent and tail thump.',
+          why: 'In murky water or darkness, silhouette contrast and vibration outperform natural shiny finishes.'
+        };
+      }
+      if (clarity === 'clean' && timeOfDay === 'midday') {
+        return {
+          naturalBait: 'Natural & Subtle: Live Bait (Karanteen / Mullet) or Sand Prawns in gullies',
+          lures: 'Silver/Chrome Spoons • Translucent Pilchard Stickbaits • Finesse Dropshot',
+          rigging: 'Drop down in fluorocarbon leader diameter so fish inspecting baits in bright clear water aren’t spooked.',
+          why: 'Bright midday sun and clean water let fish inspect lures closely—natural flash wins.'
+        };
+      }
+      // Default: Dawn/Dusk or Slightly Colored Working Water (Prime Richards Bay)
+      return {
+        naturalBait: state.zone === 'mzingazi'
+          ? 'Fresh Mud / Sand Prawn or Live Mullet along channel edges'
+          : 'Fresh Sardine & Chokka Combo or Live Karanteen along gully drop-offs',
+        lures: 'Topwater Poppers • Walk-the-Dog Plugs • Pearl/White Paddletails & Silver Spoons',
+        rigging: `Work the ${tide === 'pushing' ? 'incoming tide push' : 'outgoing drain channels'} actively during low light.`,
+        why: 'Low-light glare reduction and slightly coloured working water trigger aggressive surface and gully feeding.'
+      };
+    }
+
+    function computeWinningRigs() {
+      const counts = {};
+      let total = 0;
+      state.logs.filter(l => l.type === 'catch' && l.bait).forEach(l => {
+        counts[l.bait] = (counts[l.bait] || 0) + 1;
+        total++;
+      });
+      state.chatPosts.filter(p => p.bait && p.species).forEach(p => {
+        counts[p.bait] = (counts[p.bait] || 0) + 1;
+        total++;
+      });
+      if (total === 0) return [{ bait: 'Fresh Sardine & Chokka', pct: 100 }];
+      return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([bait, count]) => ({ bait, pct: Math.round((count / total) * 100) }));
+    }
+
+    /* =====================================================================
+     * 5. NAVIGATION & RENDERING
+     * ===================================================================== */
+    const NAV_ITEMS = [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'
+      },
+      {
+        id: 'bait',
+        label: 'Bait & Lures',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>'
+      },
+      {
+        id: 'limits',
+        label: 'Limits',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'
+      },
+      {
+        id: 'safety',
+        label: 'Safety',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>'
+      },
+      {
+        id: 'chat',
+        label: 'Local Chat',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'
+      }
+    ];
+
+    function renderNavigation() {
+      const desktopNav = document.getElementById('desktop-nav');
+      const mobileNav = document.getElementById('mobile-nav');
+
+      desktopNav.innerHTML = NAV_ITEMS.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="switchTab('${item.id}')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+            active
+              ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/70 border border-transparent'
+          }">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${item.icon}</svg>
+            <span>${item.label}</span>
+            ${item.id === 'safety' ? '<span class="ml-auto w-2 h-2 rounded-full bg-red-500"></span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      mobileNav.innerHTML = NAV_ITEMS.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="switchTab('${item.id}')" class="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition ${
+            active ? 'text-sky-400 bg-sky-500/10' : 'text-slate-400 hover:text-slate-200'
+          }">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="${active ? '2.4' : '1.9'}" viewBox="0 0 24 24">${item.icon}</svg>
+            <span class="text-[10px] font-semibold tracking-tight leading-none">${item.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      saveState();
+      renderApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleZoneChange(zoneId) {
+      state.zone = zoneId;
+      saveState();
+      renderApp();
+      showToast(`Switched to ${ZONES[zoneId].name}`, 'sky');
+    }
+
+    function setCondition(key, value) {
+      state.conditions[key] = value;
+      saveState();
+      renderApp();
+    }
+
+    function toggleSimulator() {
+      state.simOpen = !state.simOpen;
+      saveState();
+      renderApp();
+    }
+
+    function renderApp() {
+      document.getElementById('global-zone-select').value = state.zone;
+      renderNavigation();
+      const main = document.getElementById('app-content');
+
+      if (state.activeTab === 'dashboard') main.innerHTML = renderDashboardTab();
+      else if (state.activeTab === 'bait') main.innerHTML = renderBaitTab();
+      else if (state.activeTab === 'limits') main.innerHTML = renderLimitsTab();
+      else if (state.activeTab === 'safety') main.innerHTML = renderSafetyTab();
+      else if (state.activeTab === 'chat') main.innerHTML = renderChatTab();
+    }
+
+    /* =====================================================================
+     * 6. TAB 1: BITE DASHBOARD
+     * ===================================================================== */
+    function renderTideSVG() {
+      // Map simulated time of day to x coordinate along 24h curve (width 320, height 96)
+      const timePosMap = { dawn: 75, midday: 160, dusk: 238, night: 292 };
+      const markerX = timePosMap[state.conditions.timeOfDay] || 238;
+      // Approximate y along sinusoidal wave for visual alignment
+      const markerY = Math.round(48 - Math.sin(((markerX - 40) / 140) * Math.PI) * 26);
+
+      return `
+        <div class="mt-2">
+          <svg viewBox="0 0 320 96" class="w-full h-24 overflow-visible">
+            <defs>
+              <linearGradient id="tideGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <!-- Grid baseline -->
+            <line x1="0" y1="78" x2="320" y2="78" stroke="#1e293b" stroke-width="1"/>
+            <!-- Tide Area & Curve -->
+            <path d="M 0,68 C 35,78 55,78 90,48 C 125,18 145,18 180,48 C 215,78 235,78 270,48 C 295,26 308,22 320,24 L 320,78 L 0,78 Z" fill="url(#tideGrad)"/>
+            <path d="M 0,68 C 35,78 55,78 90,48 C 125,18 145,18 180,48 C 215,78 235,78 270,48 C 295,26 308,22 320,24" fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Current Time Marker -->
+            <line x1="${markerX}" y1="12" x2="${markerX}" y2="78" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <circle cx="${markerX}" cy="${markerY}" r="5" fill="#10b981" stroke="#0b1320" stroke-width="2"/>
+            <!-- Tide Labels -->
+            <text x="42" y="92" fill="#94a3b8" font-size="9" text-anchor="middle">L 05:12 (0.4m)</text>
+            <text x="145" y="14" fill="#38bdf8" font-size="9" font-weight="700" text-anchor="middle">H 11:28 (1.9m)</text>
+            <text x="235" y="92" fill="#94a3b8" font-size="9" text-anchor="middle">L 17:44 (0.5m)</text>
+            <text x="302" y="14" fill="#38bdf8" font-size="9" font-weight="700" text-anchor="middle">H 23:55</text>
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderDashboardTab() {
+      const zoneObj = ZONES[state.zone];
+      const metrics = computeBiteMetrics();
+      const zoneAlert = getZoneSafetyBanner();
+
+      // Circular SVG Gauge math (r=54, circumference = 2 * PI * 54 ≈ 339.29)
+      const radius = 54;
+      const circumference = 2 * Math.PI * radius;
+      const dashOffset = circumference - (metrics.score / 100) * circumference;
+
+      // Personal Catch-Per-Hour stats
+      const totalHours = state.logs.reduce((acc, l) => acc + (parseFloat(l.hours) || 0), 0);
+      const totalCatches = state.logs.filter(l => l.type === 'catch').length;
+      const blankCount = state.logs.filter(l => l.type === 'blank').length;
+      const fishPerHour = totalHours > 0 ? (totalCatches / totalHours).toFixed(2) : '0.00';
+
+      const simPill = (key, val, label) => {
+        const active = state.conditions[key] === val;
+        return `<button type="button" onclick="setCondition('${key}', '${val}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border ${
+          active
+            ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-sm'
+            : 'bg-[#0b1320] text-slate-300 border-slate-700/80 hover:border-slate-500'
+        }">${label}</button>`;
+      };
+
+      return `
+        <!-- ACTIVE ALERTS STRIP -->
+        <div class="space-y-2.5">
+          ${isShadClosedSeason() ? `
+            <div class="flex items-start sm:items-center justify-between gap-3 bg-red-500/10 border border-red-500/40 rounded-2xl px-4 py-3">
+              <div class="flex items-start gap-2.5">
+                <span class="mt-0.5 w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 animate-pulse"></span>
+                <div>
+                  <p class="text-xs sm:text-sm font-bold text-red-400 tracking-wide">SHAD CLOSED SEASON ACTIVE (1 Oct – 30 Nov)</p>
+                  <p class="text-xs text-red-200/80">No Shad / Elf may be retained anywhere in South Africa until 1 Dec. Release all Shad immediately.</p>
+                </div>
+              </div>
+              <button onclick="switchTab('limits')" class="shrink-0 text-xs font-bold text-red-300 hover:text-white bg-red-500/20 px-3 py-1.5 rounded-lg transition">Rules</button>
+            </div>
+          ` : ''}
+
+          ${zoneAlert ? `
+            <div class="flex items-start sm:items-center justify-between gap-3 ${
+              zoneAlert.level === 'red'
+                ? 'bg-red-500/10 border-red-500/40 text-red-200'
+                : 'bg-amber-500/10 border-amber-500/40 text-amber-200'
+            } border rounded-2xl px-4 py-3">
+              <div class="flex items-start gap-2.5">
+                <svg class="w-5 h-5 ${zoneAlert.level === 'red' ? 'text-red-400' : 'text-amber-400'} shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
+                <div>
+                  <p class="text-xs sm:text-sm font-bold ${zoneAlert.level === 'red' ? 'text-red-400' : 'text-amber-400'}">${zoneAlert.title}</p>
+                  <p class="text-xs opacity-90">${zoneAlert.text}</p>
+                </div>
+              </div>
+              <button onclick="switchTab('safety')" class="shrink-0 text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition">Safety</button>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- BITE SCORE HERO CARD -->
+        <section class="bg-[#131f33] border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+          <div class="flex flex-col md:flex-row items-center gap-6">
+            <!-- Circular SVG Gauge -->
+            <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
+              <svg class="w-36 h-36 -rotate-90" viewBox="0 0 128 128">
+                <circle cx="64" cy="64" r="${radius}" fill="none" stroke="#1e293b" stroke-width="11"/>
+                <circle cx="64" cy="64" r="${radius}" fill="none" stroke="${metrics.color}" stroke-width="11" stroke-linecap="round"
+                  stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}" class="gauge-ring"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span class="text-3xl font-extrabold text-white leading-none">${metrics.score}</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Bite Score</span>
+              </div>
+            </div>
+
+            <!-- Score Details & Active Species -->
+            <div class="flex-1 w-full text-center md:text-left space-y-3">
+              <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white">${zoneObj.name}</h2>
+                <span class="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border ${metrics.badgeClass}">
+                  ${metrics.rating}
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-300">${zoneObj.waterNote}</p>
+
+              <!-- Top 3 Active Target Species -->
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Top Active Target Species</p>
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                  ${zoneObj.topSpecies.map(sp => `
+                    <button onclick="jumpToSpeciesBait('${sp}')" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#0b1320] hover:bg-sky-500/15 hover:border-sky-500/40 text-sky-300 border border-slate-700/80 rounded-xl px-3 py-1.5 transition">
+                      <span>${sp}</span>
+                      <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Quick Action Row -->
+              <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5 pt-1">
+                <button onclick="openWhatsAppModal()" class="inline-flex items-center gap-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-bold text-xs px-3.5 py-2 rounded-xl transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                  WhatsApp Mission Card
+                </button>
+                <button onclick="switchTab('bait')" class="inline-flex items-center gap-2 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-300 font-bold text-xs px-3.5 py-2 rounded-xl transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  What to Tie On Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- INTERACTIVE CONDITION SIMULATOR (COLLAPSIBLE) -->
+        <section class="bg-[#131f33] border border-sky-500/30 rounded-2xl overflow-hidden">
+          <button type="button" onclick="toggleSimulator()" class="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-[#1a2942]/60 transition">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              </span>
+              <div>
+                <h3 class="text-sm font-bold text-white">Test / Simulate Live Conditions</h3>
+                <p class="text-xs text-slate-400">Adjust water, tide, light &amp; swell to see Bite Score &amp; Bait update live</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-slate-400 transition-transform ${state.simOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+
+          ${state.simOpen ? `
+            <div class="px-5 pb-5 pt-2 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Water Clarity</p>
+                <div class="flex flex-wrap gap-1.5">
+                  ${simPill('clarity', 'clean', 'Clean')}
+                  ${simPill('clarity', 'slightly-colored', 'Slightly Colored')}
+                  ${simPill('clarity', 'murky', 'Murky / Dirty')}
+                </div>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Time of Day</p>
+                <div class="flex flex-wrap gap-1.5">
+                  ${simPill('timeOfDay', 'dawn', 'Dawn')}
+                  ${simPill('timeOfDay', 'midday', 'Midday')}
+                  ${simPill('timeOfDay', 'dusk', 'Dusk')}
+                  ${simPill('timeOfDay', 'night', 'Night')}
+                </div>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Tide Flow</p>
+                <div class="flex flex-wrap gap-1.5">
+                  ${simPill('tide', 'pushing', 'Pushing (Incoming)')}
+                  ${simPill('tide', 'dropping', 'Dropping (Outgoing)')}
+                </div>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Swell &amp; Wind</p>
+                <div class="flex flex-wrap gap-1.5">
+                  ${simPill('swellWind', 'calm', 'Calm (0.8m)')}
+                  ${simPill('swellWind', 'working', 'Working (1.5m)')}
+                  ${simPill('swellWind', 'rough', 'Rough (2.2m+)')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </section>
+
+        <!-- LIVE MARINE & WEATHER GRID -->
+        <section class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <!-- Tide Card (spans 7 cols on desktop) -->
+          <div class="md:col-span-7 bg-[#131f33] border border-slate-800 rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Richards Bay Tide Chart</p>
+                <p class="text-base font-bold text-white mt-0.5">
+                  ${state.conditions.tide === 'pushing' ? 'Incoming / Pushing Tide' : 'Outgoing / Dropping Tide'}
+                </p>
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                Spring Tide
+              </span>
+            </div>
+            ${renderTideSVG()}
+          </div>
+
+          <!-- 4-Pack Telemetry Cards (spans 5 cols on desktop) -->
+          <div class="md:col-span-5 grid grid-cols-2 gap-3">
+            <!-- Barometric Pressure -->
+            <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Barometer</span>
+              <div class="my-1.5">
+                <p class="text-lg font-extrabold text-white">${metrics.pressure.hpa}</p>
+                <p class="text-[11px] font-semibold ${metrics.pressure.good ? 'text-emerald-400' : 'text-amber-400'}">${metrics.pressure.trend}</p>
+              </div>
+              <span class="text-[10px] text-slate-400">${metrics.pressure.good ? 'Pre-front bite trigger' : 'Monitor frontal shift'}</span>
+            </div>
+
+            <!-- Swell -->
+            <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Swell</span>
+              <div class="my-1.5">
+                <p class="text-lg font-extrabold text-white">${metrics.swell.height}</p>
+                <p class="text-[11px] font-semibold text-sky-400">${metrics.swell.period}</p>
+              </div>
+              <span class="text-[10px] ${state.conditions.swellWind === 'rough' ? 'text-red-400 font-bold' : 'text-slate-400'}">${metrics.swell.label}</span>
+            </div>
+
+            <!-- Wind -->
+            <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Wind</span>
+              <div class="my-1.5">
+                <p class="text-lg font-extrabold text-white">${metrics.wind.speed}</p>
+                <p class="text-[11px] font-semibold text-slate-300">${metrics.wind.dir}</p>
+              </div>
+              <span class="text-[10px] text-slate-400">Coastal surface</span>
+            </div>
+
+            <!-- Solunar -->
+            <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Solunar</span>
+              <div class="my-1.5">
+                <p class="text-xs font-extrabold text-emerald-400 leading-snug">${metrics.solunar}</p>
+                <p class="text-[11px] text-slate-300 mt-0.5">Minor: 05:30 – 06:30</p>
+              </div>
+              <span class="text-[10px] text-slate-400">Waxing Gibbous</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- RECENT PERSONAL LOGS & CATCH-PER-HOUR STATS -->
+        <section class="bg-[#131f33] border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold text-white">Your Personal Logbook</h3>
+              <p class="text-xs text-slate-400">Saved offline on this device • Tracks both catches &amp; blank trips</p>
+            </div>
+            <button onclick="openLoggerModal()" class="text-xs font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 border border-sky-500/30 px-3 py-1.5 rounded-xl transition">
+              + Add Session
+            </button>
+          </div>
+
+          <!-- KPI Strip -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <div class="bg-[#0b1320] border border-slate-800 rounded-xl p-3 text-center">
+              <p class="text-lg sm:text-xl font-extrabold text-emerald-400">${fishPerHour}</p>
+              <p class="text-[11px] text-slate-400 font-medium">Fish / Hour</p>
+            </div>
+            <div class="bg-[#0b1320] border border-slate-800 rounded-xl p-3 text-center">
+              <p class="text-lg sm:text-xl font-extrabold text-white">${totalCatches}</p>
+              <p class="text-[11px] text-slate-400 font-medium">Catches Logged</p>
+            </div>
+            <div class="bg-[#0b1320] border border-slate-800 rounded-xl p-3 text-center">
+              <p class="text-lg sm:text-xl font-extrabold text-amber-400">${blankCount}</p>
+              <p class="text-[11px] text-slate-400 font-medium">Blank Trips</p>
+            </div>
+          </div>
+
+          <!-- Log List -->
+          <div class="space-y-2.5">
+            ${state.logs.length === 0 ? `
+              <p class="text-sm text-slate-400 text-center py-6">No sessions logged yet. Tap "Log Catch" to record your first trip.</p>
+            ` : state.logs.slice(0, 6).map(log => `
+              <div class="flex items-center justify-between gap-3 bg-[#0b1320] border border-slate-800/90 rounded-xl p-3.5">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-md ${
+                      log.type === 'catch'
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-amber-500/15 text-amber-400'
+                    }">${log.type === 'catch' ? 'CATCH' : 'BLANK TRIP'}</span>
+                    <span class="text-sm font-bold text-white truncate">
+                      ${log.type === 'catch' ? `${log.species}${log.sizeCm ? ` (${log.sizeCm} cm)` : ''}` : 'No Bite Recorded'}
+                    </span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">${log.privacy}</span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">
+                    ${ZONES[log.zone]?.name || log.zone} • ${log.bait} • ${log.hours}h • ${log.timestamp}
+                  </p>
+                </div>
+                <button onclick="deleteLog('${log.id}')" class="p-2 text-slate-500 hover:text-red-400 rounded-lg transition shrink-0" title="Remove log">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    /* =====================================================================
+     * 7. TAB 2: BAIT & LURE RECOMMENDER
+     * ===================================================================== */
+    function renderBaitTab() {
+      const rec = getBaitRecommendation();
+      const winningRigs = computeWinningRigs();
+      const speciesPills = ['All', 'Dusky Kob', 'Garrick / Leervis', 'Spotted Grunter', 'Shad / Elf', 'Kingfish / GT', 'Natal Stumpnose', 'Blacktail / Dassie', 'Couta'];
+      const { clarity, timeOfDay, tide, swellWind } = state.conditions;
+
+      return `
+        <div class="space-y-5">
+          <!-- Header & Synced Conditions -->
+          <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-extrabold text-white">What to Tie On Right Now</h2>
+              <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+                Synced to <strong class="text-sky-400">${ZONES[state.zone].name}</strong> •
+                <span class="capitalize">${clarity.replace('-', ' ')}</span> water •
+                <span class="capitalize">${timeOfDay}</span> •
+                <span class="capitalize">${tide}</span> tide •
+                <span class="capitalize">${swellWind}</span> swell
+              </p>
+            </div>
+            <button onclick="state.simOpen = true; switchTab('dashboard')" class="shrink-0 text-xs font-bold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-3.5 py-2 rounded-xl transition">
+              Adjust Conditions
+            </button>
+          </div>
+
+          <!-- Target Species Filter Pills -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            ${speciesPills.map(sp => {
+              const active = state.baitSpeciesFilter === sp;
+              return `
+                <button onclick="setBaitSpecies('${sp}')" class="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
+                  active
+                    ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
+                    : 'bg-[#131f33] text-slate-300 border-slate-800 hover:border-slate-600'
+                }">${sp}</button>
+              `;
+            }).join('')}
+          </div>
+
+          ${state.baitSpeciesFilter === 'Shad / Elf' ? `
+            <div class="bg-red-500/10 border border-red-500/40 rounded-2xl px-4 py-3 text-xs text-red-200 flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+              <span><strong>Closed Season (1 Oct – 30 Nov):</strong> If targeting Shad for sport, use barbless single hooks and release immediately in the water.</span>
+            </div>
+          ` : ''}
+
+          <!-- Structured Recommendation Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Natural Bait Card -->
+            <div class="bg-[#131f33] border border-emerald-500/30 rounded-2xl p-5 space-y-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                </span>
+                <div>
+                  <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Top Natural Bait</p>
+                  <h3 class="text-sm font-bold text-white">Best Scent &amp; Presentation</h3>
+                </div>
+              </div>
+              <p class="text-base font-bold text-emerald-100 leading-snug bg-[#0b1320] p-3.5 rounded-xl border border-slate-800">
+                ${rec.naturalBait}
+              </p>
+            </div>
+
+            <!-- Lures & Colors Card -->
+            <div class="bg-[#131f33] border border-sky-500/30 rounded-2xl p-5 space-y-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </span>
+                <div>
+                  <p class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Top Lures &amp; Colors</p>
+                  <h3 class="text-sm font-bold text-white">Artificial / Dropshot / Spinning</h3>
+                </div>
+              </div>
+              <p class="text-base font-bold text-sky-100 leading-snug bg-[#0b1320] p-3.5 rounded-xl border border-slate-800">
+                ${rec.lures}
+              </p>
+            </div>
+          </div>
+
+          <!-- Retrieve, Rigging & Why It Works -->
+          <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1.5">Retrieve &amp; Rigging Tip</p>
+              <p class="text-sm text-slate-200 leading-relaxed">${rec.rigging}</p>
+            </div>
+            <div class="md:border-l md:border-slate-800 md:pl-5">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-sky-400 mb-1.5">Why It Works Locally</p>
+              <p class="text-sm text-slate-300 leading-relaxed">${rec.why}</p>
+            </div>
+          </div>
+
+          <!-- Winning Rig (Last 48h) Community Proof -->
+          <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-5 space-y-3.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-bold text-white">Winning Rig (Last 48h — Richards Bay)</h3>
+                <p class="text-xs text-slate-400">Live breakdown from logged local catches</p>
+              </div>
+              <span class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">Live Proof</span>
+            </div>
+            <div class="space-y-2.5">
+              ${winningRigs.map((item, idx) => `
+                <div>
+                  <div class="flex justify-between text-xs font-semibold mb-1">
+                    <span class="text-slate-200">${idx === 0 ? '🏆 ' : ''}${item.bait}</span>
+                    <span class="text-sky-400">${item.pct}% of catches</span>
+                  </div>
+                  <div class="w-full h-2.5 bg-[#0b1320] rounded-full overflow-hidden border border-slate-800">
+                    <div class="h-full rounded-full ${idx === 0 ? 'bg-emerald-500' : 'bg-sky-500'}" style="width: ${item.pct}%"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Local Tackle Shop Sponsored Stock Banner -->
+          <div class="bg-gradient-to-r from-sky-950/80 to-[#131f33] border border-sky-500/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span class="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider shrink-0 mt-0.5">Local Partner</span>
+              <div>
+                <p class="text-sm font-bold text-white">Live Stock Update — Richards Bay Tackle &amp; Bait</p>
+                <p class="text-xs text-slate-300 mt-0.5">Fresh Red-Eye Sardines, Whole Chokka, Bloodworm &amp; 2oz–3oz Chrome Spoons in stock today. Open until 17:30.</p>
+              </div>
+            </div>
+            <button onclick="state.activeChannel = 'bait-tackle-swap'; switchTab('chat')" class="shrink-0 text-xs font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 px-3.5 py-2 rounded-xl transition">
+              View Stock Chat
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function setBaitSpecies(sp) {
+      state.baitSpeciesFilter = sp;
+      saveState();
+      renderApp();
+    }
+
+    function jumpToSpeciesBait(spName) {
+      const map = { 'King Mackerel / Couta': 'Couta' };
+      state.baitSpeciesFilter = map[spName] || spName;
+      state.activeTab = 'bait';
+      saveState();
+      renderApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* =====================================================================
+     * 8. TAB 3: SPECIES, BAG & SIZE LIMITS
+     * ===================================================================== */
+    function renderLimitsTab() {
+      const totalBag = Object.values(state.bagCounts).reduce((a, b) => a + b, 0);
+      const bagPct = Math.min(100, (totalBag / 10) * 100);
+      const bagColor = totalBag >= 10 ? 'bg-red-500' : totalBag >= 8 ? 'bg-amber-500' : 'bg-emerald-500';
+
+      const filtered = SPECIES_DB.filter(sp => {
+        const matchesQuery = sp.name.toLowerCase().includes(state.limitsSearch.toLowerCase()) ||
+                             sp.notes.toLowerCase().includes(state.limitsSearch.toLowerCase());
+        const matchesCat = state.limitsFilter === 'All'
+          || (state.limitsFilter === 'Closed Season' && sp.closedSeason)
+          || sp.category === state.limitsFilter;
+        return matchesQuery && matchesCat;
+      });
+
+      const filters = ['All', 'Shore / Surf', 'Estuary', 'Offshore', 'Closed Season'];
+
+      return `
+        <div class="space-y-5">
+          <!-- Interactive Daily Bag Tracker (SA 10-Fish Cumulative Cap) -->
+          <section class="bg-[#131f33] border ${totalBag >= 10 ? 'border-red-500/50' : totalBag >= 8 ? 'border-amber-500/50' : 'border-slate-800'} rounded-2xl p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold text-white">Daily Bag Limit Tracker</h2>
+                <p class="text-xs text-slate-400">South African Cumulative Cap: max 10 retained fish/person/day</p>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="text-sm font-extrabold px-3 py-1 rounded-xl ${
+                  totalBag >= 10 ? 'bg-red-500/20 text-red-400' : totalBag >= 8 ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+                }">${totalBag} / 10 Retained</span>
+                ${totalBag > 0 ? `<button onclick="resetBagTracker()" class="text-xs font-semibold text-slate-400 hover:text-white underline">Reset</button>` : ''}
+              </div>
+            </div>
+            <div class="w-full h-3 bg-[#0b1320] rounded-full overflow-hidden border border-slate-800">
+              <div class="h-full ${bagColor} transition-all duration-300" style="width: ${bagPct}%"></div>
+            </div>
+            ${totalBag >= 10 ? `
+              <p class="text-xs font-bold text-red-400">Cumulative 10-fish daily limit reached! All further catches today must be released.</p>
+            ` : ''}
+          </section>
+
+          <!-- Search & Category Filter -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" value="${state.limitsSearch}" oninput="handleLimitsSearch(this.value)" placeholder="Search species (e.g. Kob, Grunter, Shad)..." class="w-full bg-[#131f33] border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              ${filters.map(f => `
+                <button onclick="setLimitsFilter('${f}')" class="shrink-0 px-3 py-2 rounded-xl text-xs font-bold border transition ${
+                  state.limitsFilter === f
+                    ? 'bg-sky-500 text-slate-950 border-sky-400'
+                    : 'bg-[#131f33] text-slate-300 border-slate-800 hover:border-slate-600'
+                }">${f}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Species Cards Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            ${filtered.map(sp => {
+              const count = state.bagCounts[sp.id] || 0;
+              const atLimit = count >= sp.bagLimit;
+              return `
+                <div class="bg-[#131f33] border ${sp.closedSeason ? 'border-red-500/40' : atLimit ? 'border-amber-500/50' : 'border-slate-800'} rounded-2xl p-4 flex flex-col justify-between gap-3">
+                  <div>
+                    <div class="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 class="text-base font-bold text-white">${sp.name}</h3>
+                        <span class="text-[11px] font-medium text-slate-400">${sp.category}</span>
+                      </div>
+                      ${sp.closedSeason
+                        ? `<span class="text-[10px] font-extrabold uppercase bg-red-500/20 text-red-400 border border-red-500/40 px-2.5 py-1 rounded-lg">${sp.closedLabel}</span>`
+                        : `<span class="text-[11px] font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 px-2.5 py-1 rounded-lg">Open</span>`
+                      }
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                      <div class="bg-[#0b1320] rounded-xl px-3 py-2 border border-slate-800">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Min Size</p>
+                        <p class="text-sm font-extrabold text-white">${sp.minSize}</p>
+                      </div>
+                      <div class="bg-[#0b1320] rounded-xl px-3 py-2 border border-slate-800">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Bag Limit</p>
+                        <p class="text-sm font-extrabold text-emerald-400">${sp.bagLimit} / day</p>
+                      </div>
+                    </div>
+
+                    <p class="text-xs text-slate-300 mt-2.5 leading-relaxed">${sp.notes}</p>
+                  </div>
+
+                  <!-- Per-Species Bag Counter -->
+                  <div class="flex items-center justify-between pt-2.5 border-t border-slate-800/80">
+                    <span class="text-xs font-semibold ${atLimit ? 'text-amber-400' : 'text-slate-400'}">
+                      ${sp.closedSeason ? 'Retention prohibited (Oct–Nov)' : atLimit ? 'Species limit reached' : `Kept today: ${count} / ${sp.bagLimit}`}
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <button onclick="adjustBag('${sp.id}', -1)" class="w-8 h-8 rounded-lg bg-[#0b1320] hover:bg-slate-800 border border-slate-700 text-white font-bold flex items-center justify-center transition" aria-label="Decrease">−</button>
+                      <span class="w-5 text-center text-sm font-extrabold text-white">${count}</span>
+                      <button onclick="adjustBag('${sp.id}', 1)" class="w-8 h-8 rounded-lg ${
+                        sp.closedSeason || atLimit || totalBag >= 10
+                          ? 'bg-slate-800 text-slate-500 border-slate-700'
+                          : 'bg-sky-500 hover:bg-sky-400 text-slate-950 border-sky-400'
+                      } border font-bold flex items-center justify-center transition" aria-label="Increase">+</button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Key SA Legal Reminders Card -->
+          <section class="bg-[#131f33] border border-sky-500/30 rounded-2xl p-5 space-y-2.5">
+            <h3 class="text-sm font-extrabold text-sky-400 uppercase tracking-wider">Key South African Legal Reminders (DFFE)</h3>
+            <ul class="text-xs sm:text-sm text-slate-300 space-y-2 list-disc pl-5">
+              <li><strong>10-Fish Cumulative Cap:</strong> You may not retain more than 10 fish in total per person per day across all species combined (excluding baitfish with no limit or limits above 10).</li>
+              <li><strong>Head &amp; Tail Intact:</strong> All landed fish (except sharks/rays) must be kept whole with head and tail intact so inspectors can measure straight from snout to tail tip.</li>
+              <li><strong>Valid Recreational Permit:</strong> Every angler aged 12 and older must carry a valid SA Recreational Angling Permit (available from the Post Office or DFFE e-portal).</li>
+            </ul>
+          </section>
+        </div>
+      `;
+    }
+
+    function handleLimitsSearch(val) {
+      state.limitsSearch = val;
+      renderApp();
+      // Keep cursor at end of search input
+      const input = document.querySelector('#app-content input[type="text"]');
+      if (input) { input.focus(); input.setSelectionRange(val.length, val.length); }
+    }
+
+    function setLimitsFilter(filter) {
+      state.limitsFilter = filter;
+      renderApp();
+    }
+
+    function adjustBag(speciesId, delta) {
+      const sp = SPECIES_DB.find(s => s.id === speciesId);
+      if (!sp) return;
+      const current = state.bagCounts[speciesId] || 0;
+      const totalBag = Object.values(state.bagCounts).reduce((a, b) => a + b, 0);
+
+      if (delta > 0) {
+        if (sp.closedSeason) {
+          showToast(`${sp.name} is in Closed Season (1 Oct – 30 Nov). Release only!`, 'red');
+          return;
+        }
+        if (current >= sp.bagLimit) {
+          showToast(`Daily limit reached for ${sp.name} (${sp.bagLimit}/day).`, 'amber');
+          return;
+        }
+        if (totalBag >= 10) {
+          showToast('SA 10-fish cumulative daily cap reached!', 'red');
+          return;
+        }
+      }
+
+      const next = Math.max(0, current + delta);
+      state.bagCounts[speciesId] = next;
+      saveState();
+      renderApp();
+    }
+
+    function resetBagTracker() {
+      state.bagCounts = {};
+      saveState();
+      renderApp();
+      showToast('Daily bag tracker reset to 0.', 'sky');
+    }
+
+    /* =====================================================================
+     * 9. TAB 4: HAZARD & SAFETY ALERTS
+     * ===================================================================== */
+    function renderSafetyTab() {
+      return `
+        <div class="space-y-5">
+          <!-- Emergency Quick Banner -->
+          <section class="bg-gradient-to-r from-red-950/70 to-[#131f33] border border-red-500/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-extrabold uppercase tracking-wider text-red-400">Richards Bay Marine Emergency</p>
+              <h2 class="text-lg font-extrabold text-white mt-0.5">NSRI Station 19: 082 990 5949 • Emergency: 112</h2>
+              <p class="text-xs text-slate-300 mt-1">All toxic species &amp; first-aid protocols below are stored offline for zero-signal access.</p>
+            </div>
+            <button onclick="openFirstAidModal('venom-sting', 'Marine Venom Sting Protocol')" class="shrink-0 bg-red-500 hover:bg-red-400 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow-lg shadow-red-500/20">
+              Offline First-Aid Guide
+            </button>
+          </section>
+
+          <!-- Toxic & Hazardous Species -->
+          <section class="space-y-3">
+            <h3 class="text-base font-extrabold text-white">Toxic &amp; Hazardous Richards Bay Species</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              ${HAZARDS_DB.map(h => `
+                <div class="bg-[#131f33] border ${h.severity === 'red' ? 'border-red-500/35' : 'border-amber-500/35'} rounded-2xl p-4 flex flex-col justify-between gap-3">
+                  <div>
+                    <div class="flex items-start justify-between gap-2">
+                      <h4 class="text-sm sm:text-base font-bold text-white">${h.name}</h4>
+                      <span class="shrink-0 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg border ${
+                        h.severity === 'red'
+                          ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                          : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                      }">${h.badge}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-2 leading-relaxed">${h.summary}</p>
+                  </div>
+                  <div class="pt-2 border-t border-slate-800/80 flex justify-end">
+                    <button onclick="openFirstAidModal('${h.firstAidType}', '${h.name}')" class="inline-flex items-center gap-1.5 text-xs font-bold ${
+                      h.severity === 'red' ? 'text-red-400 hover:text-red-300 bg-red-500/10' : 'text-amber-400 hover:text-amber-300 bg-amber-500/10'
+                    } px-3 py-1.5 rounded-xl transition">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                      Offline First-Aid
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </section>
+
+          <!-- Dangerous Locations & Zone Hazards -->
+          <section class="space-y-3">
+            <h3 class="text-base font-extrabold text-white">Dangerous Locations &amp; Zone Hazards</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              ${ZONE_HAZARDS_DB.map(z => {
+                const style = z.severity === 'red'
+                  ? 'border-red-500/35 text-red-400 bg-red-500/15'
+                  : z.severity === 'amber'
+                    ? 'border-amber-500/35 text-amber-400 bg-amber-500/15'
+                    : 'border-sky-500/35 text-sky-400 bg-sky-500/15';
+                return `
+                  <div class="bg-[#131f33] border ${style.split(' ')[0]} rounded-2xl p-4 space-y-2">
+                    <div class="flex items-start justify-between gap-2">
+                      <h4 class="text-sm font-bold text-white">${z.zone}</h4>
+                      <span class="shrink-0 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${style.split(' ').slice(1).join(' ')}">${z.tag}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">${z.desc}</p>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </section>
+
+          <!-- Liability Disclaimer -->
+          <footer class="bg-[#0b1320] border border-slate-800 rounded-2xl p-4 text-[11px] text-slate-400 leading-relaxed">
+            <strong class="text-slate-300">Advisory &amp; Liability Disclaimer:</strong> Bag limits, size limits, weather forecasts, wildlife alerts, and offline first-aid steps in BayBite RB are provided for general guidance only. Anglers are legally responsible for verifying current DFFE regulations and fish entirely at their own risk. In any serious medical or sea emergency, contact NSRI Station 19 (082 990 5949) or 112 immediately.
+          </footer>
+        </div>
+      `;
+    }
+
+    function openFirstAidModal(type, title) {
+      document.getElementById('firstaid-title').textContent = `First-Aid: ${title}`;
+      const body = document.getElementById('firstaid-body');
+
+      const protocols = {
+        'venom-sting': `
+          <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
+            <p class="font-bold text-emerald-400 text-xs uppercase tracking-wider mb-1">Step 1: Hot Water Immersion (Critical)</p>
+            <p class="text-xs sm:text-sm text-slate-200">Immerse the affected limb in <strong>hot water (40–45°C — as hot as tolerable without scalding)</strong> for 30–90 minutes. Test with an unaffected hand first. Heat breaks down protein-based marine venom (Barbel, Lionfish, Stingray).</p>
+          </div>
+          <ul class="space-y-2 text-xs sm:text-sm list-disc pl-5 text-slate-300">
+            <li>Rinse wound with clean freshwater or saline and gently remove any visible loose spine fragments with tweezers (do not dig deeply).</li>
+            <li>Control bleeding with direct pressure and elevate the limb.</li>
+            <li>Seek medical evaluation for antibiotics &amp; tetanus—barbel and stingray wounds frequently become infected.</li>
+          </ul>
+          <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200">
+            <strong>DO NOT:</strong> Do NOT apply ice, vinegar, urine, or a tight tourniquet. Do NOT try to suck out the venom.
+          </div>
+        `,
+        'severe-venom': `
+          <div class="bg-red-500/15 border border-red-500/40 rounded-xl p-3.5">
+            <p class="font-bold text-red-400 text-xs uppercase tracking-wider mb-1">MEDICAL EMERGENCY — CALL 112 / NSRI IMMEDIATELY</p>
+            <p class="text-xs sm:text-sm text-red-100">Stonefish venom can cause severe shock, breathing difficulty, and tissue damage. Get to an emergency room immediately.</p>
+          </div>
+          <ul class="space-y-2 text-xs sm:text-sm list-disc pl-5 text-slate-300">
+            <li>While awaiting transport, immerse the wound in <strong>hot water (as hot as tolerable without scalding)</strong> to help denature the venom and ease excruciating pain.</li>
+            <li>Keep the casualty calm, still, and monitor breathing/consciousness.</li>
+            <li>Do NOT apply a tourniquet or cut the wound.</li>
+          </ul>
+        `,
+        'toxin-ingestion': `
+          <div class="bg-red-500/15 border border-red-500/40 rounded-xl p-3.5">
+            <p class="font-bold text-red-400 text-xs uppercase tracking-wider mb-1">LETHAL TETRODOTOXIN — NO ANTIDOTE</p>
+            <p class="text-xs sm:text-sm text-red-100">Never eat Blaasop/Pufferfish. Cooking does NOT destroy tetrodotoxin. Symptoms (lip numbness, dizziness, paralysis) can start within 15–45 minutes.</p>
+          </div>
+          <ul class="space-y-2 text-xs sm:text-sm list-disc pl-5 text-slate-300">
+            <li>Call emergency services (112) immediately if ingestion is suspected.</li>
+            <li>Monitor airway and breathing closely—be ready to perform CPR if breathing slows or stops.</li>
+            <li>When unhooking a Blaasop, use pliers to avoid its sharp beak and release carefully.</li>
+          </ul>
+        `,
+        'ciguatera': `
+          <div class="bg-amber-500/15 border border-amber-500/40 rounded-xl p-3.5">
+            <p class="font-bold text-amber-400 text-xs uppercase tracking-wider mb-1">Ciguatera Fish Poisoning</p>
+            <p class="text-xs sm:text-sm text-amber-100">Caused by eating large, older tropical reef predators. Symptoms include nausea, tingling limbs, and hot/cold sensation reversal.</p>
+          </div>
+          <ul class="space-y-2 text-xs sm:text-sm list-disc pl-5 text-slate-300">
+            <li>Seek medical care for supportive hydration and symptom management.</li>
+            <li>Avoid alcohol, nuts, and further fish consumption during recovery as they can trigger symptom relapses.</li>
+          </ul>
+        `,
+        'laceration': `
+          <div class="bg-amber-500/15 border border-amber-500/40 rounded-xl p-3.5">
+            <p class="font-bold text-amber-400 text-xs uppercase tracking-wider mb-1">Deep Marine Bite / Laceration</p>
+            <p class="text-xs sm:text-sm text-amber-100">Shad, Couta, and shark teeth cause clean, deep cuts that bleed heavily and carry marine bacteria (Vibrio).</p>
+          </div>
+          <ul class="space-y-2 text-xs sm:text-sm list-disc pl-5 text-slate-300">
+            <li>Apply firm, direct pressure with a clean cloth or bandage to stop bleeding.</li>
+            <li>Flush thoroughly with clean freshwater and antiseptic once bleeding slows.</li>
+            <li>Seek stitches and medical review for any deep hand/finger cut or signs of redness/swelling.</li>
+          </ul>
+        `
+      };
+
+      body.innerHTML = protocols[type] || protocols['venom-sting'];
+      openModal('firstaid-modal');
+    }
+
+    /* =====================================================================
+     * 10. TAB 5: LOCAL CATCH CHAT
+     * ===================================================================== */
+    function renderChatTab() {
+      const posts = state.chatPosts.filter(p => p.channel === state.activeChannel);
+
+      return `
+        <div class="space-y-4">
+          <!-- Channel Filter Pills -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            ${CHAT_CHANNELS.map(ch => {
+              const active = state.activeChannel === ch.id;
+              return `
+                <button onclick="setChatChannel('${ch.id}')" class="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
+                  active
+                    ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
+                    : 'bg-[#131f33] text-slate-300 border-slate-800 hover:border-slate-600'
+                }">${ch.label}</button>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Interactive Post Composer -->
+          <form id="chat-composer" onsubmit="handleChatSubmit(event)" class="bg-[#131f33] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold text-sky-400">Post to ${CHAT_CHANNELS.find(c => c.id === state.activeChannel)?.label}</span>
+              <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                EXIF GPS Auto-Stripped
+              </span>
+            </div>
+
+            <textarea id="chat-text" rows="2" required placeholder="Share water clarity, baitfish activity, or a zone-only catch report..." class="w-full bg-[#0b1320] border border-slate-700/80 rounded-xl p-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"></textarea>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <select id="chat-zone" class="bg-[#0b1320] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                ${Object.values(ZONES).map(z => `<option value="${z.name}" ${z.id === state.zone ? 'selected' : ''}>${z.name}</option>`).join('')}
+              </select>
+              <select id="chat-species" onchange="checkChatShadPrompt()" class="bg-[#0b1320] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <option value="">No Species Tag (Update)</option>
+                ${SPECIES_DB.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+              </select>
+              <input type="text" id="chat-bait" placeholder="Bait / Lure (optional)" class="bg-[#0b1320] border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500" />
+            </div>
+
+            <!-- Inline Shad Closed Season Compliance Prompt -->
+            <div id="chat-shad-prompt" class="hidden bg-red-500/10 border border-red-500/40 rounded-xl p-3 text-xs text-red-200 space-y-2">
+              <p class="font-bold text-red-400">Shad Closed Season Check (1 Oct – 30 Nov)</p>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="chat-shad-cr" class="w-4 h-4 accent-emerald-500 rounded" />
+                <span>I confirm this Shad was safely <strong>Catch &amp; Released</strong> in compliance with SA law.</span>
+              </label>
+            </div>
+
+            <!-- Spot Protection Toggles & Submit -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="chat-zone-only" checked class="w-3.5 h-3.5 accent-sky-500 rounded" />
+                  <span>Zone-Only Privacy</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="chat-delay-24h" class="w-3.5 h-3.5 accent-amber-500 rounded" />
+                  <span>Delay Post 24h</span>
+                </label>
+              </div>
+              <button type="submit" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition shadow-md shadow-sky-500/20">
+                Post Update
+              </button>
+            </div>
+          </form>
+
+          <!-- Chat Feed List -->
+          <div class="space-y-3">
+            ${posts.length === 0 ? `
+              <div class="bg-[#131f33] border border-slate-800 rounded-2xl p-8 text-center text-sm text-slate-400">
+                No updates in this channel yet. Be the first local angler to post!
+              </div>
+            ` : posts.map(post => {
+              const liked = state.likedPosts.includes(post.id);
+              return `
+                <article class="bg-[#131f33] border border-slate-800 rounded-2xl p-4 space-y-2.5">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-sky-400 font-bold text-xs flex items-center justify-center shrink-0">
+                        ${post.author.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                          <span class="text-sm font-bold text-white">${post.author}</span>
+                          ${post.badge ? `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30">${post.badge}</span>` : ''}
+                        </div>
+                        <p class="text-[11px] text-slate-400">${post.time} • ${post.zone}</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      ${post.zoneOnly ? `<span class="text-[10px] font-semibold bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">Zone-Only</span>` : ''}
+                      ${post.exifStripped ? `<span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20" title="Hidden GPS metadata stripped">EXIF ✓</span>` : ''}
+                    </div>
+                  </div>
+
+                  <p class="text-sm text-slate-200 leading-relaxed">${post.text}</p>
+
+                  <!-- Stamped Metadata Pills -->
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    ${post.species ? `<span class="text-[11px] font-semibold bg-sky-500/10 text-sky-300 border border-sky-500/25 px-2.5 py-0.5 rounded-full">🐟 ${post.species}</span>` : ''}
+                    ${post.bait ? `<span class="text-[11px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/25 px-2.5 py-0.5 rounded-full">🪝 ${post.bait}</span>` : ''}
+                    ${post.tide ? `<span class="text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-0.5 rounded-full">🌊 ${post.tide}</span>` : ''}
+                    ${post.catchRelease ? `<span class="text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">♻️ Catch &amp; Release</span>` : ''}
+                    ${post.delayed ? `<span class="text-[11px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 px-2.5 py-0.5 rounded-full">⏳ Delayed 24h</span>` : ''}
+                  </div>
+
+                  <!-- Footer Actions -->
+                  <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                    <button onclick="toggleLike('${post.id}')" class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl transition ${
+                      liked ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' : 'bg-[#0b1320] text-slate-400 hover:text-white border border-slate-800'
+                    }">
+                      <svg class="w-4 h-4" fill="${liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg>
+                      <span>${post.likes}</span>
+                    </button>
+                    <span class="text-[10px] text-slate-500">Richards Bay Local Feed</span>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function setChatChannel(channelId) {
+      state.activeChannel = channelId;
+      saveState();
+      renderApp();
+    }
+
+    function checkChatShadPrompt() {
+      const sp = document.getElementById('chat-species')?.value;
+      const box = document.getElementById('chat-shad-prompt');
+      if (!box) return;
+      if (sp === 'Shad / Elf') box.classList.remove('hidden');
+      else box.classList.add('hidden');
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const text = document.getElementById('chat-text').value.trim();
+      if (!text) return;
+      const zone = document.getElementById('chat-zone').value;
+      const species = document.getElementById('chat-species').value || null;
+      const bait = document.getElementById('chat-bait').value.trim() || null;
+      const zoneOnly = document.getElementById('chat-zone-only').checked;
+      const delayed = document.getElementById('chat-delay-24h').checked;
+
+      let catchRelease = false;
+      if (species === 'Shad / Elf') {
+        const crChecked = document.getElementById('chat-shad-cr').checked;
+        if (!crChecked) {
+          showToast('Please confirm Catch & Release for Shad during the Oct–Nov closed season.', 'red');
+          return;
+        }
+        catchRelease = true;
+      }
+
+      const newPost = {
+        id: 'p-' + Date.now(),
+        channel: state.activeChannel,
+        author: 'You (RB Angler)',
+        badge: 'Local Angler',
+        zone,
+        species,
+        bait,
+        tide: state.conditions.tide === 'pushing' ? 'Pushing Tide' : 'Dropping Tide',
+        catchRelease,
+        exifStripped: true,
+        zoneOnly,
+        delayed,
+        text,
+        time: delayed ? 'Scheduled (+24h)' : 'Just now',
+        likes: 1
+      };
+
+      state.chatPosts.unshift(newPost);
+      saveState();
+      renderApp();
+      showToast(delayed ? 'Post queued with 24h spot-protection delay!' : 'Update posted to local feed!', 'emerald');
+    }
+
+    function toggleLike(postId) {
+      const post = state.chatPosts.find(p => p.id === postId);
+      if (!post) return;
+      const idx = state.likedPosts.indexOf(postId);
+      if (idx === -1) {
+        state.likedPosts.push(postId);
+        post.likes += 1;
+      } else {
+        state.likedPosts.splice(idx, 1);
+        post.likes = Math.max(0, post.likes - 1);
+      }
+      saveState();
+      renderApp();
+    }
+
+    /* =====================================================================
+     * 11. MODALS: QUICK LOGGER & WHATSAPP MISSION CARD
+     * ===================================================================== */
+    let currentLogType = 'catch';
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+
+    function openLoggerModal() {
+      document.getElementById('log-zone').value = state.zone;
+      setLogType('catch');
+      checkLogSpeciesCompliance();
+      openModal('logger-modal');
+    }
+
+    function setLogType(type) {
+      currentLogType = type;
+      const btnCatch = document.getElementById('log-type-catch');
+      const btnBlank = document.getElementById('log-type-blank');
+      const fields = document.getElementById('catch-only-fields');
+
+      if (type === 'catch') {
+        btnCatch.className = 'py-2 rounded-lg text-sm font-bold transition bg-emerald-500 text-slate-950';
+        btnBlank.className = 'py-2 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white';
+        fields.classList.remove('hidden');
+      } else {
+        btnBlank.className = 'py-2 rounded-lg text-sm font-bold transition bg-amber-500 text-slate-950';
+        btnCatch.className = 'py-2 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white';
+        fields.classList.add('hidden');
+      }
+    }
+
+    function checkLogSpeciesCompliance() {
+      const spName = document.getElementById('log-species').value;
+      const sizeVal = parseFloat(document.getElementById('log-size').value) || 0;
+      const hint = document.getElementById('log-compliance-hint');
+      const sp = SPECIES_DB.find(s => s.name.startsWith(spName.split(' / ')[0]));
+
+      if (!sp) { hint.classList.add('hidden'); return; }
+
+      if (sp.closedSeason) {
+        hint.className = 'rounded-xl p-3 text-xs font-semibold border bg-red-500/15 border-red-500/40 text-red-300';
+        hint.textContent = `⚠️ ${sp.name} is in Closed Season (1 Oct – 30 Nov). Must be released!`;
+        hint.classList.remove('hidden');
+      } else if (sp.minCm > 0 && sizeVal > 0 && sizeVal < sp.minCm) {
+        hint.className = 'rounded-xl p-3 text-xs font-semibold border bg-amber-500/15 border-amber-500/40 text-amber-300';
+        hint.textContent = `📏 Undersize: ${sp.name} min size is ${sp.minSize}. Log as Catch & Release.`;
+        hint.classList.remove('hidden');
+      } else {
+        hint.className = 'rounded-xl p-3 text-xs font-semibold border bg-emerald-500/15 border-emerald-500/30 text-emerald-300';
+        hint.textContent = `✓ Legal Size (${sp.minSize} min • Bag limit ${sp.bagLimit}/day).`;
+        hint.classList.remove('hidden');
+      }
+    }
+
+    function handleLogSubmit(e) {
+      e.preventDefault();
+      const zone = document.getElementById('log-zone').value;
+      const hours = parseFloat(document.getElementById('log-hours').value) || 1;
+      const bait = document.getElementById('log-bait').value.trim();
+      const privacy = document.getElementById('log-privacy').value;
+      const shareChat = document.getElementById('log-share-chat').checked;
+      const species = currentLogType === 'catch' ? document.getElementById('log-species').value : 'Blank Trip';
+      const sizeCm = currentLogType === 'catch' ? (parseInt(document.getElementById('log-size').value, 10) || null) : null;
+
+      const newLog = {
+        id: 'log-' + Date.now(),
+        type: currentLogType,
+        zone,
+        species,
+        sizeCm,
+        bait,
+        hours,
+        privacy,
+        timestamp: 'Just now',
+        conditionsSnap: `${state.conditions.tide === 'pushing' ? 'Pushing' : 'Dropping'} Tide`
+      };
+
+      state.logs.unshift(newLog);
+
+      if (shareChat && currentLogType === 'catch' && privacy !== 'Private GPS') {
+        state.chatPosts.unshift({
+          id: 'p-' + Date.now(),
+          channel: 'live-catch-feed',
+          author: 'You (RB Angler)',
+          badge: 'Local Angler',
+          zone: ZONES[zone].name,
+          species,
+          bait,
+          tide: state.conditions.tide === 'pushing' ? 'Pushing Tide' : 'Dropping Tide',
+          catchRelease: species === 'Shad / Elf',
+          exifStripped: true,
+          zoneOnly: true,
+          delayed: false,
+          text: `Logged a ${sizeCm ? sizeCm + 'cm ' : ''}${species} after ${hours}h on ${bait}.`,
+          time: 'Just now',
+          likes: 1
+        });
+      }
+
+      saveState();
+      closeModal('logger-modal');
+      renderApp();
+      showToast(currentLogType === 'catch' ? 'Catch saved to logbook!' : 'Blank trip logged — bite model updated!', 'emerald');
+    }
+
+    function deleteLog(logId) {
+      state.logs = state.logs.filter(l => l.id !== logId);
+      saveState();
+      renderApp();
+      showToast('Session removed from logbook.', 'sky');
+    }
+
+    function openWhatsAppModal() {
+      const zoneObj = ZONES[state.zone];
+      const metrics = computeBiteMetrics();
+      const rec = getBaitRecommendation();
+      const alert = getZoneSafetyBanner();
+
+      const msg = [
+        `🎣 *BayBite RB — Richards Bay Mission Card*`,
+        `📍 *Zone:* ${zoneObj.name}`,
+        `🔥 *Bite Score:* ${metrics.score}/100 (${metrics.rating})`,
+        `🌊 *Tide:* ${state.conditions.tide === 'pushing' ? 'Incoming / Pushing' : 'Outgoing / Dropping'} (Spring)`,
+        `📉 *Pressure:* ${metrics.pressure.hpa} (${metrics.pressure.trend})`,
+        `💨 *Swell & Wind:* ${metrics.swell.height} ${metrics.swell.period} • ${metrics.wind.speed} ${metrics.wind.dir}`,
+        `🐟 *Targets:* ${zoneObj.topSpecies.join(', ')}`,
+        `🪝 *Top Bait:* ${rec.naturalBait}`,
+        `⚡ *Top Lure:* ${rec.lures}`,
+        alert ? `⚠️ *Safety:* ${alert.title}` : `✅ *Safety:* Standard coastal caution`,
+        `🚫 *Reminder:* Shad Closed Season (1 Oct – 30 Nov)`
+      ].join('\n');
+
+      document.getElementById('whatsapp-preview').textContent = msg;
+      openModal('whatsapp-modal');
+    }
+
+    function copyMissionCard() {
+      const text = document.getElementById('whatsapp-preview').textContent;
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Mission Card copied! Ready to paste in WhatsApp.', 'emerald');
+      } catch (err) {
+        showToast('Copy failed — please select and copy manually.', 'amber');
+      }
+      document.body.removeChild(ta);
+    }
+
+    /* =====================================================================
+     * 12. TOAST HELPER & INITIALIZATION
+     * ===================================================================== */
+    function showToast(message, tone = 'sky') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        sky: 'bg-[#131f33] border-sky-500/50 text-sky-200',
+        emerald: 'bg-[#131f33] border-emerald-500/50 text-emerald-200',
+        amber: 'bg-[#131f33] border-amber-500/50 text-amber-200',
+        red: 'bg-[#131f33] border-red-500/50 text-red-200'
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto border ${colors[tone] || colors.sky} rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold shadow-2xl transition-all duration-300`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(() => el.remove(), 300);
+      }, 2800);
+    }
+
+    // Boot app on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderApp();
+    });
+  </script>
+</body>
+</html>
